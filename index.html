@@ -1,0 +1,379 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0E7490" />
+
+<title>分期真实利率计算器｜月费率 0.75% 实际年化 17.5%，不是 9%</title>
+<meta name="description" content="输入借款金额、期数和月费率，用 IRR 算出分期真实年化利率。信用卡分期、花呗、白条、网贷的真实成本通常是宣传的 2 倍。附提前还款测算与行业利率对照。" />
+<meta name="keywords" content="分期真实利率,IRR计算器,信用卡分期实际年化,月费率换算年化,花呗分期真实利率,白条分期利率,砍头息,提前还款划算吗,名义利率和实际利率" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="https://pyldiyishuai.github.io/loan-irr-calc/" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="月费率 0.75%，真实年化其实是 17.5%" />
+<meta property="og:description" content="把「手续费率」换算成真实年化，看看这笔分期到底多贵。" />
+<meta property="og:url" content="https://pyldiyishuai.github.io/loan-irr-calc/" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230E7490'/%3E%3Cpath d='M28 72l16-22 12 12 16-30' stroke='%23fff' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/layout.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/components-calc.css" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "分期真实利率计算器",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "All",
+  "description": "用 IRR 计算信用卡分期、花呗、白条、网贷的真实年化利率，对比名义费率，含提前还款测算。",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
+</head>
+
+<body>
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="./" aria-label="分期真实利率计算器">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="22" height="22"><path d="M28 72l16-22 12 12 16-30" stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="brand__text">分期真实利率计算器</span>
+    </a>
+    <nav class="topnav" aria-label="主导航">
+      <a href="#calculator">开始计算</a>
+      <a href="#result">看结果</a>
+      <a href="#benchmarks">利率对照</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ============ Hero ============ -->
+  <section class="hero">
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <p class="hero__badge">按 IRR 精确计算，不是估算</p>
+        <h1 class="hero__title">他们说年化 9%<br /><em>实际是 17.5%</em></h1>
+        <p class="hero__sub">
+          分期手续费按<b>初始本金</b>收，但你的欠款逐月减少。<br class="only-pc" />
+          最后一期只剩 1/12 的本金，却还在付全额手续费。
+        </p>
+        <div class="hero__stats">
+          <div class="stat"><b>1.94 倍</b><span>真实 ÷ 名义</span></div>
+          <div class="stat"><b>1e-9</b><span>求解精度</span></div>
+          <div class="stat"><b>不上传</b><span>数据只在本地</span></div>
+        </div>
+      </div>
+
+      <aside class="demo-card" aria-label="对比示例">
+        <span class="demo-card__tag">借 12,000 元 / 12 期</span>
+        <p class="demo-card__line">月费率 0.75%，销售说「年化才 9%」</p>
+        <div class="demo-card__split">
+          <div class="demo-card__item">
+            <span>名义年化</span>
+            <b>9.00%</b>
+          </div>
+          <div class="demo-card__arrow" aria-hidden="true">→</div>
+          <div class="demo-card__item demo-card__item--bad">
+            <span>真实年化</span>
+            <b>17.48%</b>
+          </div>
+        </div>
+        <p class="demo-card__foot">多付 <b>1,080 元</b>手续费</p>
+      </aside>
+    </div>
+    <div class="hero__glow" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============ 计算器 ============ -->
+  <section class="calc" id="calculator">
+    <div class="calc__grid">
+
+      <!-- ---------- 输入 ---------- -->
+      <form class="card card--input" id="form" autocomplete="off" novalidate>
+        <h2 class="card__title">填这笔分期</h2>
+
+        <div class="group">
+          <div class="group__head">
+            <span class="group__title">① 选一个产品</span>
+            <span class="group__hint">自动填好典型费率</span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="preset">分期类型</label>
+            <select class="select" id="preset"></select>
+            <p class="field__tip" id="presetTip"></p>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group__head">
+            <span class="group__title">② 借多少、分几期</span>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label class="field__label" for="amount">借款金额</label>
+              <div class="input-money">
+                <input id="amount" name="amount" type="text" inputmode="decimal" data-format="money" value="12000" />
+                <span class="input-money__unit">元</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" for="months">分期期数</label>
+              <div class="input-money input-money--pct">
+                <input id="months" name="months" type="number" inputmode="numeric" step="1" min="1" max="360" value="12" />
+                <span class="input-money__unit">期</span>
+              </div>
+            </div>
+          </div>
+          <div class="quickpicks" data-quickpick="months">
+            <button type="button" data-value="3">3 期</button>
+            <button type="button" data-value="6">6 期</button>
+            <button type="button" data-value="12" class="is-active">12 期</button>
+            <button type="button" data-value="24">24 期</button>
+            <button type="button" data-value="36">36 期</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group__head">
+            <span class="group__title">③ 费率</span>
+            <span class="group__hint">销售说的那个数</span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="feeRate">
+              月费率
+              <span class="field__hint">每期手续费 ÷ 本金</span>
+            </label>
+            <div class="input-money input-money--pct">
+              <input id="feeRate" name="feeRate" type="number" inputmode="decimal" step="0.01" min="0" max="10" value="0.75" />
+              <span class="input-money__unit">%</span>
+            </div>
+            <p class="field__tip" id="feeTip"></p>
+            <p class="field__tip" id="rateTip"></p>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group__head">
+            <span class="group__title">④ 前置费用</span>
+            <span class="group__hint">没有就留 0</span>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label class="field__label" for="upfront">一次性手续费</label>
+              <div class="input-money">
+                <input id="upfront" name="upfront" type="text" inputmode="decimal" data-format="money" value="0" />
+                <span class="input-money__unit">元</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" for="cutInterest">砍头息</label>
+              <div class="input-money">
+                <input id="cutInterest" name="cutInterest" type="text" inputmode="decimal" data-format="money" value="0" />
+                <span class="input-money__unit">元</span>
+              </div>
+            </div>
+          </div>
+          <p class="field__tip" id="extraTip"></p>
+        </div>
+
+        <div class="calc__actions">
+          <button class="btn btn--primary btn--block" type="submit" id="btnCalc">算出真实年化</button>
+          <button class="btn btn--ghost btn--block btn--sm" type="button" id="btnReset">恢复默认</button>
+        </div>
+        <p class="calc__disclaimer">
+          按「等额本息 + 固定手续费」的标准分期形态计算。等额本金、先息后本等产品结构不同，结果会有差异。
+        </p>
+      </form>
+
+      <!-- ---------- 结果 ---------- -->
+      <div class="card card--result" id="result" aria-live="polite">
+        <div class="result__head">
+          <h2 class="card__title">测算结果</h2>
+          <span class="result__stamp" id="resultStamp">实时更新</span>
+        </div>
+
+        <div class="result__hero">
+          <p class="result__hero-label" id="heroLabel">这笔分期的真实年化</p>
+          <p class="result__hero-value" id="heroValue">—</p>
+          <p class="result__hero-sub" id="heroSub">填写左侧信息后自动计算</p>
+        </div>
+
+        <!-- 名义 vs 真实 -->
+        <div class="compare">
+          <div class="compare__head">
+            <h3>名义 vs 真实</h3>
+            <span class="compare__badge" id="multipleBadge"></span>
+          </div>
+          <div class="cbar" id="compareBar"></div>
+          <p class="compare__note">
+            名义年化 = 月费率 × 12。真实年化是让所有还款现值等于到手金额的贴现率。
+          </p>
+        </div>
+
+        <!-- 指标 -->
+        <div class="metrics">
+          <div class="metric">
+            <span class="metric__label">每期还款</span>
+            <b class="metric__value" id="metricPayment">—</b>
+          </div>
+          <div class="metric">
+            <span class="metric__label">总手续费</span>
+            <b class="metric__value" id="metricTotalFee">—</b>
+          </div>
+          <div class="metric">
+            <span class="metric__label">每期手续费</span>
+            <b class="metric__value" id="metricFeePerMonth">—</b>
+          </div>
+          <div class="metric">
+            <span class="metric__label">实际到手</span>
+            <b class="metric__value" id="metricReceived">—</b>
+          </div>
+        </div>
+
+        <!-- 行业参照 -->
+        <div class="benchmark">
+          <div class="benchmark__head">
+            <h3>你的位置</h3>
+            <span class="benchmark__note">按真实年化对照</span>
+          </div>
+          <div class="benchmark__list" id="benchmarkList"></div>
+        </div>
+
+        <!-- 提前还款 -->
+        <details class="schedule" id="earlyWrap">
+          <summary>提前还款能省多少</summary>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr><th>时点</th><th>剩余本金</th><th>最理想结清</th><th>多数产品实际</th></tr>
+              </thead>
+              <tbody id="earlyBody"></tbody>
+            </table>
+          </div>
+          <p class="schedule__note">
+            第三列是「只还剩余本金」的理想情况，第四列是「剩余本金 + 剩余全部手续费」，
+            多数分期产品按后者执行。
+          </p>
+        </details>
+
+        <!-- 还款计划 -->
+        <details class="schedule" id="scheduleWrap">
+          <summary>还款计划</summary>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr><th>期数</th><th>还款</th><th>手续费</th><th>剩余本金</th></tr>
+              </thead>
+              <tbody id="scheduleBody"></tbody>
+            </table>
+          </div>
+        </details>
+
+        <!-- 建议 -->
+        <div class="advice" id="advice">
+          <div class="advice__icon" aria-hidden="true">💡</div>
+          <div class="advice__body">
+            <h3 class="advice__title">这笔分期值不值</h3>
+            <div class="advice__text" id="adviceText">填写信息后，这里会给出判断。</div>
+          </div>
+        </div>
+
+        <div class="ad-slot ad-slot--inline" data-ad-slot="result-inline" aria-hidden="true">
+          <span>广告位 · 结果区</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot ad-slot--banner" data-ad-slot="content-banner" aria-hidden="true">
+    <span>广告位 · 内容横幅</span>
+  </div>
+
+  <!-- ============ 利率对照表 ============ -->
+  <section class="traps-section" id="benchmarks">
+    <h2 class="section__title">常见借贷方式的真实年化</h2>
+    <p class="section__desc">
+      同样是借钱，成本差 10 倍。这张表按真实年化（不是宣传口径）排列。
+    </p>
+    <div class="table-wrap">
+      <table class="table table--traps">
+        <thead>
+          <tr><th>方式</th><th>真实年化</th><th>贵不贵</th></tr>
+        </thead>
+        <tbody id="bmTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="faq" id="faq">
+    <h2 class="section__title">关于分期利率，你可能还想知道</h2>
+    <div class="faq__list" id="faqList"></div>
+  </section>
+
+  <section class="related" id="related">
+    <h2 class="section__title">更多实用计算工具</h2>
+    <div class="related__grid">
+      <a class="related__item" href="#" data-related="mortgage">
+        <b>房贷提前还款计算器</b><span>提前还贷能省多少利息</span>
+      </a>
+      <a class="related__item" href="#" data-related="bonus">
+        <b>年终奖个税计算器</b><span>单独计税还是合并计税</span>
+      </a>
+      <a class="related__item" href="#" data-related="ecom">
+        <b>电商定价计算器</b><span>卖多少钱才不亏</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <p class="footer__brand">分期真实利率计算器</p>
+    <p class="footer__desc">
+      本工具按标准分期形态（等额本息 + 固定手续费）计算 IRR，结果仅供参考。
+      实际利率以借款合同与机构披露的年化利率为准。年化利率超过 24% 请谨慎借贷。
+    </p>
+    <p class="footer__links">
+      <a href="#">关于我们</a><a href="#">隐私政策</a><a href="#">免责声明</a>
+      <a href="#" data-action="feedback">意见反馈</a>
+    </p>
+    <p class="footer__copy">© <span id="year">2025</span> 分期真实利率计算器 · 保留所有权利</p>
+  </div>
+</footer>
+
+<div class="dockbar" id="dockbar" hidden>
+  <div class="dockbar__main">
+    <span class="dockbar__label">真实年化</span>
+    <b class="dockbar__value" id="dockSave">—</b>
+  </div>
+  <button class="dockbar__btn" type="button" id="dockJump">看详细结果</button>
+</div>
+
+<button class="backtop" id="backtop" aria-label="返回顶部" hidden>
+  <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/data/loan-presets.js"></script>
+<script src="assets/js/data/faq.js"></script>
+<script src="assets/js/core/irr.js"></script>
+<script src="assets/js/integrations/ads.js"></script>
+<script src="assets/js/integrations/analytics.js"></script>
+<script src="assets/js/integrations/api.js"></script>
+<script src="assets/js/integrations/auth.js"></script>
+<script src="assets/js/ui/format.js"></script>
+<script src="assets/js/ui/form.js"></script>
+<script src="assets/js/ui/result.js"></script>
+<script src="assets/js/ui/chart.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
